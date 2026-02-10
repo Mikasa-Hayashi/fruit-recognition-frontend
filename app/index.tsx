@@ -1,5 +1,4 @@
-import CameraControls from '@/components/CameraControls'
-import CameraPreview from '@/components/CameraPreview'
+import CameraScreen from '@/screens/CameraScreen'
 import { CameraView } from 'expo-camera'
 import { useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
@@ -17,15 +16,8 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <CameraPreview
-        cameraRef={cameraRef}
-        torchEnabled={torchEnabled}
-      />
-      <CameraControls
-        torchEnabled={torchEnabled}
-        onToggleTorch={() => setTorchEnabled(v => !v)}
-        onTakePhoto={takePhoto}
-      />
+      <CameraScreen />
+      {/* <FruitDetailScreen /> */}
     </View>
   )
 }
