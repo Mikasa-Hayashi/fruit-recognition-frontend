@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Dimensions,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -90,7 +91,8 @@ const InfoTable: React.FC<InfoTableProps> = ({ title, data }) => {
 };
 
 // --- Main Screen Component ---
-export default function FruitDetailScreen() {
+export default function FruitDetailScreen({ navigation }: any) {
+  const router = useRouter();
   
   // Моковые данные (потом придут с сервера)
   const fruitData = {
@@ -112,7 +114,7 @@ export default function FruitDetailScreen() {
 
   const handleBack = () => {
     console.log("Go back!");
-    // navigation.goBack();
+    router.back();
   };
 
   return (
