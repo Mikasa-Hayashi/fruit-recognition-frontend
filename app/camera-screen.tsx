@@ -1,3 +1,4 @@
+import { LoadingOverlay } from '@/src/components/LoadingOverlay';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
@@ -99,7 +100,10 @@ const BottomControlPanel: React.FC<BottomControlProps> = ({
 };
 
 // --- Main Screen Component ---
-export default function CameraScreen({ navigation }: any) {
+export default function CameraScreen() {
+  const [loading, setLoading] = useState(false);
+
+
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   // const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
@@ -144,56 +148,30 @@ export default function CameraScreen({ navigation }: any) {
   };
 
   const sendToServer = async (imageUri: string) => {
-    router.push('/info-screen'); // Navigate to loading screen while processing
-    // Mock Server Request
-    // const formData = new FormData();
-    // formData.append('image', {
-    //   uri: imageUri,
-    //   type: 'image/jpeg',
-    //   name: 'image.jpg',
-    // });
-    // try {
-    //     const response = await api.post('/inference', formData);
-    //     if response.message =
-
-    //     const fruitInfo = response?.data?.fruitInfo;
-
-    //     navigation.replace('Info', { fruitInfo })
-        
-    //     console.log('Ответ от сервера:', response.data);
-    //     // alert('Фото успешно отправлено на сервер!');
-    // } catch (err) {
-    //     setError({
-    //         title: 'Ошибка запроса',
-    //         description: 'Произошла ошибка при попытке скачать видео. Пожалуйста, попробуйте еще раз.'
-    //     }); 
-    //     console.error('Download request error:', err);
-    // } finally {
-    //     setIsLoading(false);
-    // }
-    // console.log("Sending to server:", imageUri);
-    // return new Promise((resolve) => setTimeout(resolve, 1500));
+    router.push('/info'); // Navigate to loading screen while processing
   };
 
   const handleTakePicture = async () => {
+    setLoading(true);
     if (cameraRef.current) {
       try {
         setIsProcessing(true);
         const photo = await cameraRef.current.takePictureAsync();
         
         if (photo) {
+          await new Promise(resolve => setTimeout(resolve, 2500));
           // 1. Send request to server
           await sendToServer(photo.uri);
-          
-          // 2. (Optional) Save to local gallery
-          // await MediaLibrary.saveToLibraryAsync(photo.uri);
-          
-          // Alert.alert("Success", "Photo taken and request sent!");
         }
+
+
+        // await new Promise(resolve => setTimeout(resolve, 2500));
+        // router.push('/info');
       } catch (error) {
         Alert.alert("Error", "Failed to take picture.");
         console.error(error);
       } finally {
+        setLoading(false);
         setIsProcessing(false);
       }
     }
@@ -235,6 +213,7 @@ export default function CameraScreen({ navigation }: any) {
           isProcessing={isProcessing}
         />
       </View>
+      <LoadingOverlay visible={loading} text="Обработка фото..." />
     </View>
   );
 }
