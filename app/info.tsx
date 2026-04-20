@@ -18,11 +18,9 @@ import { fruitData } from '@/src/store/fruitData';
 // --- Main Screen Component ---
 export default function FruitDetailScreen() {
   const router = useRouter();
-  const { slug } = useLocalSearchParams();
+  const { slug } = useLocalSearchParams<{ slug: string }>();
 
   const fruit = fruitData.find(f => f.slug === slug);
-
-  console.log(fruit);
 
   const handleBack = () => {
     console.log("Go back!");
@@ -64,7 +62,7 @@ export default function FruitDetailScreen() {
 
         <InfoTable title="Пищевая ценность (100г)" data={fruit.nutrition ?? []} />
         <InfoTable title="Витамины" data={fruit.vitamins ?? []} />
-        <InfoTable title="Макроэлемент" data={fruit.macronutrients ?? []} />
+        <InfoTable title="Макроэлементы" data={fruit.macronutrients ?? []} />
         <InfoTable title="Микроэлементы" data={fruit.micronutrients ?? []} />
 
         <View style={{ height: 40 }} />

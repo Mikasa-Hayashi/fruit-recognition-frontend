@@ -91,10 +91,7 @@ export default function CameraScreen() {
       }
 
       const slug = result.data.label;
-      router.push({
-          pathname: '/info/[slug]',
-          params: { slug },
-        });
+      router.push(`/info?slug=${slug}`);
     } catch (error) {
       Alert.alert("Error", "Failed to send image to server.");
       console.error(error);
