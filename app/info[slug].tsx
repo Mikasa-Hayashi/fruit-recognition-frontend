@@ -2,7 +2,7 @@ import { FruitHero } from '@/src/components/FruitHero';
 import { InfoTable } from '@/src/components/InfoTable';
 import { TopNavigation } from '@/src/components/TopNavigation';
 import { useFruitStore } from '@/src/store/fruitStore';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams  } from 'expo-router';
 import React from 'react';
 import {
   Dimensions,
@@ -12,39 +12,24 @@ import {
   Text,
   View
 } from 'react-native';
+import { fruitData } from '@/src/store/fruitData';
 
 
 // --- Main Screen Component ---
 export default function FruitDetailScreen() {
   const router = useRouter();
-  
-  // Моковые данные (потом придут с сервера)
-  // const fruitData = {
-  //   name: "Apple",
-  //   scientificName: "Malus domestica",
-  //   description: "The apple is a pome (fleshy) fruit, in which the ripened ovary and surrounding tissue both become fleshy and edible. The apple flower of most varieties requires cross-pollination for fertilization.",
-  //   imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-  //   nutrition: [
-  //     { label: "Calories", value: "52 kcal" },
-  //     { label: "Carbs", value: "14 g" },
-  //     { label: "Sugar", value: "10 g" },
-  //     { label: "Fiber", value: "2.4 g" },
-  //   ],
-  //   vitamins: [
-  //     { label: "Vitamin C", value: "14%" },
-  //     { label: "Potassium", value: "107 mg" },
-  //   ]
-  // };
+  const { slug } = useLocalSearchParams();
 
-  const fruitData = useFruitStore((state) => state.fruitData);
-  console.log("Received fruit data:", fruitData);
+  const fruit = fruitData.find(f => f.slug === slug);
+
+  console.log(fruit);
 
   const handleBack = () => {
     console.log("Go back!");
     router.back();
   };
 
-  if (!fruitData) {
+  if (!fruit) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -56,26 +41,6 @@ export default function FruitDetailScreen() {
     );
   }
 
-  const nutrients = fruitData.nutrients;
-
-  const energy = nutrients.filter(n => n.category === 'energy');
-
-  const vitaminsAndMinerals = nutrients.filter(n =>
-    n.category === 'vitamins' ||
-    n.category === 'macronutrients' ||
-    n.category === 'micronutrients'
-  );
-
-  const mapForTable = (items: any[]) =>
-  items.map(item => ({
-    label: item.name,
-    value: `${item.value} ${item.unit.short_form}`,
-  }));
-
-  const energyData = mapForTable(energy);
-  const vitaminsData = mapForTable(vitaminsAndMinerals).sort((a, b) => a.label.localeCompare(b.label, 'ru'));
-
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -85,20 +50,22 @@ export default function FruitDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <FruitHero 
-          imageUrl={fruitData.image_url} 
-          name={fruitData.name} 
-          scientificName={fruitData.scientific_name}
+          imageUrl={fruit.image_url ?? ""} 
+          name={fruit.name ?? "Не распознан"} 
+          scientificName={fruit.scientific_name}
         />
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Описание</Text>
           <Text style={styles.descriptionText}>
-            {fruitData.description}
+            {fruit.description}
           </Text>
         </View>
 
-        <InfoTable title="Пищевая ценность (100г)" data={energyData} />
-        <InfoTable title="Витамины и минералы" data={vitaminsData} />
+        <InfoTable title="Пищевая ценность (100г)" data={fruit.nutrition ?? []} />
+        <InfoTable title="Витамины" data={fruit.vitamins ?? []} />
+        <InfoTable title="Макроэлемент" data={fruit.macronutrients ?? []} />
+        <InfoTable title="Микроэлементы" data={fruit.micronutrients ?? []} />
 
         <View style={{ height: 40 }} />
 

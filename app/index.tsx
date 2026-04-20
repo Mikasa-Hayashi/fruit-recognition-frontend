@@ -77,7 +77,7 @@ export default function CameraScreen() {
     } as any);
 
     try {
-      const result = await api.post('/inference/fruit', formData, {
+      const result = await api.post('/inference/classify', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -89,9 +89,12 @@ export default function CameraScreen() {
         });
         return;
       }
-        
-      useFruitStore.getState().setFruitData(result.data.fruit_info);
-      router.push('/info', result.data.fruit_info );
+
+      const slug = result.data.label;
+      router.push({
+          pathname: '/info/[slug]',
+          params: { slug },
+        });
     } catch (error) {
       Alert.alert("Error", "Failed to send image to server.");
       console.error(error);
