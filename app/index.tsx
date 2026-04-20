@@ -3,6 +3,7 @@ import { BottomControlPanel } from '@/src/components/BottomControlPanel';
 import { LoadingOverlay } from '@/src/components/LoadingOverlay';
 import { ScannerFrame } from '@/src/components/ScannerFrame';
 import { TopControlPanel } from '@/src/components/TopControlPanel';
+import { useFruitStore } from '@/src/store/fruitStore';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -14,8 +15,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-
+import Toast from 'react-native-toast-message';
 
 // --- Main Screen Component ---
 export default function CameraScreen() {
@@ -82,14 +82,20 @@ export default function CameraScreen() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log("Server response:", result.data);
-      router.push('/info');
+      if (result.data.message === 'No objects detected')  {
+        Toast.show({
+          type: 'error',
+          text1: 'No fruits detected',
+        });
+        return;
+      }
+        
+      useFruitStore.getState().setFruitData(result.data.fruit_info);
+      router.push('/info', result.data.fruit_info );
     } catch (error) {
       Alert.alert("Error", "Failed to send image to server.");
       console.error(error);
     }
-
-     // Navigate to loading screen while processing
   };
 
   const handleTakePicture = async () => {
@@ -127,7 +133,6 @@ export default function CameraScreen() {
   return (
     <View style={styles.container}>
       
-      {/* 1. Opaque Top Panel (Z-Index high to sit on top) */}
       <View style={styles.topOpaqueBlock}>
         <TopControlPanel 
           isTorchOn={isTorchOn} 
@@ -136,7 +141,6 @@ export default function CameraScreen() {
         />
       </View>
 
-      {/* 2. Camera View (Fills remaining space) */}
       <View style={styles.cameraContainer}>
         <View style={styles.cameraWrapper}>
           <CameraView 
@@ -144,12 +148,10 @@ export default function CameraScreen() {
             style={styles.camera} 
             enableTorch={isTorchOn}
           >
-            {/* Scanner Frame Overlay sits inside the camera view */}
             <ScannerFrame />
           </CameraView>
         </View>
 
-        {/* 3. Semi-Transparent Bottom Panel (Absolute overlay) */}
         <BottomControlPanel 
           onTakePicture={handleTakePicture} 
           onOpenGallery={handleOpenGallery}
@@ -157,6 +159,7 @@ export default function CameraScreen() {
         />
       </View>
       <LoadingOverlay visible={loading} text="Обработка фото..." />
+      <Toast />
     </View>
   );
 }

@@ -1,152 +1,105 @@
-import { Ionicons } from '@expo/vector-icons';
+import { FruitHero } from '@/src/components/FruitHero';
+import { InfoTable } from '@/src/components/InfoTable';
+import { TopNavigation } from '@/src/components/TopNavigation';
+import { useFruitStore } from '@/src/store/fruitStore';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Dimensions,
-  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-// --- Types ---
-
-type TopNavProps = {
-  title?: string;
-  onBack: () => void;
-};
-
-type HeroProps = {
-  imageUrl: string;
-  name: string;
-  scientificName?: string;
-};
-
-type InfoTableProps = {
-  title: string;
-  data: { label: string; value: string }[];
-};
-
-// --- Component 1: Top Navigation (Header) ---
-const TopNavigation: React.FC<TopNavProps> = ({ title, onBack }) => {
-  return (
-    <SafeAreaView edges={['top']} style={styles.navContainer}>
-      <View style={styles.navContent}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="white" />
-        </TouchableOpacity>
-        
-        {/* Если нужно название в хедере, можно раскомментировать */}
-        {/* <Text style={styles.navTitle}>{title}</Text> */}
-        
-        {/* Пустой блок справа для баланса, если заголовок по центру */}
-        <View style={{ width: 40 }} />
-      </View>
-    </SafeAreaView>
-  );
-};
-
-// --- Component 2: Fruit Hero (Image + Title) ---
-const FruitHero: React.FC<HeroProps> = ({ imageUrl, name, scientificName }) => {
-  return (
-    <View style={styles.heroContainer}>
-      <Image 
-        source={{ uri: imageUrl }} 
-        style={styles.heroImage} 
-        resizeMode="cover" 
-      />
-      <View style={styles.heroTextOverlay}>
-        <Text style={styles.fruitName}>{name}</Text>
-        {scientificName && (
-          <Text style={styles.scientificName}>{scientificName}</Text>
-        )}
-      </View>
-    </View>
-  );
-};
-
-// --- Component 3: Reusable Info Table ---
-// Этот компонент мы будем использовать для таблиц БЖУ и прочего
-const InfoTable: React.FC<InfoTableProps> = ({ title, data }) => {
-  return (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.tableContainer}>
-        {data.map((item, index) => (
-          <View key={index} style={[
-            styles.tableRow, 
-            index === data.length - 1 && styles.noBorder // Убираем черту у последнего
-          ]}>
-            <Text style={styles.tableLabel}>{item.label}</Text>
-            <Text style={styles.tableValue}>{item.value}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-};
 
 // --- Main Screen Component ---
-export default function FruitDetailScreen({ navigation }: any) {
+export default function FruitDetailScreen() {
   const router = useRouter();
   
   // Моковые данные (потом придут с сервера)
-  const fruitData = {
-    name: "Apple",
-    scientificName: "Malus domestica",
-    description: "The apple is a pome (fleshy) fruit, in which the ripened ovary and surrounding tissue both become fleshy and edible. The apple flower of most varieties requires cross-pollination for fertilization.",
-    imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    nutrition: [
-      { label: "Calories", value: "52 kcal" },
-      { label: "Carbs", value: "14 g" },
-      { label: "Sugar", value: "10 g" },
-      { label: "Fiber", value: "2.4 g" },
-    ],
-    vitamins: [
-      { label: "Vitamin C", value: "14%" },
-      { label: "Potassium", value: "107 mg" },
-    ]
-  };
+  // const fruitData = {
+  //   name: "Apple",
+  //   scientificName: "Malus domestica",
+  //   description: "The apple is a pome (fleshy) fruit, in which the ripened ovary and surrounding tissue both become fleshy and edible. The apple flower of most varieties requires cross-pollination for fertilization.",
+  //   imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+  //   nutrition: [
+  //     { label: "Calories", value: "52 kcal" },
+  //     { label: "Carbs", value: "14 g" },
+  //     { label: "Sugar", value: "10 g" },
+  //     { label: "Fiber", value: "2.4 g" },
+  //   ],
+  //   vitamins: [
+  //     { label: "Vitamin C", value: "14%" },
+  //     { label: "Potassium", value: "107 mg" },
+  //   ]
+  // };
+
+  const fruitData = useFruitStore((state) => state.fruitData);
+  console.log("Received fruit data:", fruitData);
 
   const handleBack = () => {
     console.log("Go back!");
     router.back();
   };
 
+  if (!fruitData) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <TopNavigation onBack={handleBack} title="Details" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: 'white' }}>Loading fruit data...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const nutrients = fruitData.nutrients;
+
+  const energy = nutrients.filter(n => n.category === 'energy');
+
+  const vitaminsAndMinerals = nutrients.filter(n =>
+    n.category === 'vitamins' ||
+    n.category === 'macronutrients' ||
+    n.category === 'micronutrients'
+  );
+
+  const mapForTable = (items: any[]) =>
+  items.map(item => ({
+    label: item.name,
+    value: `${item.value} ${item.unit.short_form}`,
+  }));
+
+  const energyData = mapForTable(energy);
+  const vitaminsData = mapForTable(vitaminsAndMinerals).sort((a, b) => a.label.localeCompare(b.label, 'ru'));
+
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* 1. Header (Fixed at top) */}
       <TopNavigation onBack={handleBack} title="Details" />
 
-      {/* 2. Scrollable Content */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
-        {/* Hero Section */}
         <FruitHero 
-          imageUrl={fruitData.imageUrl} 
+          imageUrl={fruitData.image_url} 
           name={fruitData.name} 
-          scientificName={fruitData.scientificName}
+          scientificName={fruitData.scientific_name}
         />
 
-        {/* Description Section */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.sectionTitle}>Описание</Text>
           <Text style={styles.descriptionText}>
             {fruitData.description}
           </Text>
         </View>
 
-        {/* Tables (Future additions) */}
-        <InfoTable title="Nutrition (100g)" data={fruitData.nutrition} />
-        <InfoTable title="Vitamins & Minerals" data={fruitData.vitamins} />
+        <InfoTable title="Пищевая ценность (100г)" data={energyData} />
+        <InfoTable title="Витамины и минералы" data={vitaminsData} />
 
-        {/* Bottom padding for safe scrolling */}
         <View style={{ height: 40 }} />
 
       </ScrollView>
@@ -157,7 +110,7 @@ export default function FruitDetailScreen({ navigation }: any) {
 // --- Styles ---
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black', // Основной фон как в камере

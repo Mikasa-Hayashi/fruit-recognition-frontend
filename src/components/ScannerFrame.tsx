@@ -9,7 +9,7 @@ export const ScannerFrame: React.FC = () => {
         <View style={[styles.corner, styles.bottomLeft]} />
         <View style={[styles.corner, styles.bottomRight]} />
       </View>
-      <Text style={styles.qrText}>Scan fruit</Text>
+      <Text style={styles.qrText}>Отсканируйте фрукт</Text>
     </View>
   );
 };
